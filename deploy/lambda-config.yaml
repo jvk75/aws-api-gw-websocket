@@ -1,0 +1,91 @@
+Metadata:
+  StackName: "DEMO-lambdas"
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Lambdas for DEMO"
+Parameters:
+  LAMBDABUCKET:
+    Type: String
+    NoEcho: true
+  LAMBDAZIPNAME:
+    Type: String
+    NoEcho: true
+Resources:
+  WSConnectFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: 
+          Ref: LAMBDABUCKET
+        S3Key: 
+          Ref: LAMBDAZIPNAME
+      FunctionName: "ws-connect"
+      Handler: "ws.connect"
+      MemorySize: 256
+      Role: 
+        Fn::ImportValue:
+          Fn::Sub:
+            ws-LambdaExecutionRole
+      Runtime: python3.7
+      Timeout: 6
+      Environment:
+        Variables:
+          WSAPINAME: "ws-api"
+  WSDisconnectFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: 
+          Ref: LAMBDABUCKET
+        S3Key: 
+          Ref: LAMBDAZIPNAME
+      FunctionName: "ws-disconnect"
+      Handler: "ws.disconnect"
+      MemorySize: 256
+      Role: 
+        Fn::ImportValue:
+          Fn::Sub:
+            ws-LambdaExecutionRole
+      Runtime: python3.7
+      Timeout: 6
+      Environment:
+        Variables:
+          WSAPINAME: "ws-api"
+  WSPostMessageFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: 
+          Ref: LAMBDABUCKET
+        S3Key: 
+          Ref: LAMBDAZIPNAME
+      FunctionName: "ws-postMessage"
+      Handler: "ws.postMessage"
+      MemorySize: 256
+      Role: 
+        Fn::ImportValue:
+          Fn::Sub:
+            ws-LambdaExecutionRole
+      Runtime: python3.7
+      Timeout: 6
+      Environment:
+        Variables:
+          WSAPINAME: "ws-api"
+Outputs:
+  WSConnectFunction:
+    Value:
+      "Fn::GetAtt" : ["WSConnectFunction", "Arn"]
+    Export:
+      Name:
+        Fn::Sub: "WSConnectFunction-arn"
+  WSDisconnectFunction:
+    Value:
+      "Fn::GetAtt" : ["WSDisconnectFunction", "Arn"]
+    Export:
+      Name:
+        Fn::Sub: "WSDisconnectFunction-arn"
+  WSPostMessageFunction:
+    Value:
+      "Fn::GetAtt" : ["WSPostMessageFunction", "Arn"]
+    Export:
+      Name:
+        Fn::Sub: "WSPostMessageFunction-arn"

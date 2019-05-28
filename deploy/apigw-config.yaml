@@ -1,0 +1,146 @@
+Metadata:
+  StackName: "DEMO-ws-api"
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "WS API for DEMO"
+Resources:
+  WsApi:
+    Type: 'AWS::ApiGatewayV2::Api'
+    Properties:
+      Name: "ws-api"
+      ProtocolType: 'WEBSOCKET'
+      RouteSelectionExpression: '$request.body.action'
+  WsApiConnectIntegration:
+    Type: 'AWS::ApiGatewayV2::Integration'
+    Properties: 
+      ApiId: !Ref WsApi
+      IntegrationType: 'AWS_PROXY'
+      IntegrationUri:
+        Fn::Join:
+          - ''
+          - - 'arn:aws:apigateway:'
+            - !Ref 'AWS::Region'
+            - ':lambda:path/2015-03-31/functions/'
+            - Fn::ImportValue:
+                Fn::Sub:
+                  WSConnectFunction-arn
+            - '/invocations'
+  WsApiDisconnectIntegration:
+    Type: 'AWS::ApiGatewayV2::Integration'
+    Properties: 
+      ApiId: !Ref WsApi
+      IntegrationType: 'AWS_PROXY'
+      IntegrationUri:
+        Fn::Join:
+          - ''
+          - - 'arn:aws:apigateway:'
+            - !Ref 'AWS::Region'
+            - ':lambda:path/2015-03-31/functions/'
+            - Fn::ImportValue:
+                Fn::Sub:
+                  WSDisconnectFunction-arn
+            - '/invocations'
+  WsApiPostIntegration:
+    Type: 'AWS::ApiGatewayV2::Integration'
+    Properties: 
+      ApiId: !Ref WsApi
+      IntegrationType: 'AWS_PROXY'
+      IntegrationUri:
+        Fn::Join:
+          - ''
+          - - 'arn:aws:apigateway:'
+            - !Ref 'AWS::Region'
+            - ':lambda:path/2015-03-31/functions/'
+            - Fn::ImportValue:
+                Fn::Sub:
+                  WSPostMessageFunction-arn
+            - '/invocations'
+
+  WsApiConnectLambdaPermission:
+    Type: 'AWS::Lambda::Permission'
+    DependsOn:
+      - WsApi
+    Properties:
+      FunctionName:
+        Fn::ImportValue:
+          Fn::Sub:
+            WSConnectFunction-arn
+      Action: 'lambda:InvokeFunction'
+      Principal:
+        Fn::Join:
+          - ''
+          - - 'apigateway.'
+            - !Ref 'AWS::URLSuffix'
+  WsApiDisconnectLambdaPermission:
+    Type: 'AWS::Lambda::Permission'
+    DependsOn:
+      - WsApi
+    Properties:
+      FunctionName:
+        Fn::ImportValue:
+          Fn::Sub:
+            WSDisconnectFunction-arn
+      Action: 'lambda:InvokeFunction'
+      Principal:
+        Fn::Join:
+          - ''
+          - - 'apigateway.'
+            - !Ref 'AWS::URLSuffix'
+  WsApiPostLambdaPermission:
+    Type: 'AWS::Lambda::Permission'
+    DependsOn:
+      - WsApi
+    Properties:
+      FunctionName:
+        Fn::ImportValue:
+          Fn::Sub:
+            WSPostMessageFunction-arn
+      Action: 'lambda:InvokeFunction'
+      Principal:
+        Fn::Join:
+          - ''
+          - - 'apigateway.'
+            - !Ref 'AWS::URLSuffix'
+  WsApiConnectRoute:
+    Type: 'AWS::ApiGatewayV2::Route'
+    Properties:
+      ApiId: !Ref WsApi
+      RouteKey: '$connect'
+      Target:
+        Fn::Join:
+          - ''
+          - - 'integrations/'
+            - !Ref WsApiConnectIntegration
+  WsApiDisconnectRoute:
+    Type: 'AWS::ApiGatewayV2::Route'
+    Properties:
+      ApiId: !Ref WsApi
+      RouteKey: '$disconnect'
+      Target:
+        Fn::Join:
+          - ''
+          - - 'integrations/'
+            - !Ref WsApiDisconnectIntegration
+  WsApiPostRoute:
+    Type: 'AWS::ApiGatewayV2::Route'
+    Properties:
+      ApiId: !Ref WsApi
+      RouteKey: 'post'
+      Target:
+        Fn::Join:
+          - ''
+          - - 'integrations/'
+            - !Ref WsApiPostIntegration
+  WsDeployment:
+    Type: 'AWS::ApiGatewayV2::Deployment'
+    DependsOn:
+      - WsApiConnectRoute
+      - WsApiDisconnectRoute
+      - WsApiPostRoute
+    Properties:
+      ApiId: !Ref WsApi
+  WsDeploymentStage:
+    Type: 'AWS::ApiGatewayV2::Stage'
+    Properties:
+      ApiId: !Ref WsApi
+      DeploymentId: !Ref WsDeployment
+      StageName: 'test'

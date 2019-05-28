@@ -1,0 +1,41 @@
+Metadata:
+  StackName: "DEMO-iam"
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Lambda IAM role for DEMO"
+Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ws-LambdaExecutionRole
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSLambdaInvocation-DynamoDB
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaDynamoDBExecutionRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        -
+          PolicyName: "ws-access-policy"
+          PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                -
+                  Effect: "Allow"
+                  Action: ["dynamodb:*", "apigateway:GET", "execute-api:*"]
+                  Resource: "*"
+Outputs:
+  LambdaExecutionRole:
+    Value:
+      "Fn::GetAtt" : ["LambdaExecutionRole", "Arn"]
+    Export:
+      Name:
+        Fn::Sub: "ws-LambdaExecutionRole"
+        

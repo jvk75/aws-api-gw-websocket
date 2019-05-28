@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>WebSocket test</title>
+        <style type="text/css">
+            body {
+                font-family: "Courier New", sans-serif;
+                text-align: center;
+            }
+            .buttons {
+                font-size: 4em;
+                display: flex;
+                justify-content: center;
+            }
+            .button, .value {
+                line-height: 1;
+                padding: 2rem;
+                margin: 2rem;
+                border: medium solid;
+                min-height: 1em;
+                min-width: 1em;
+            }
+            .button {
+                cursor: pointer;
+                user-select: none;
+            }
+            .minus {
+                color: red;
+            }
+            .plus {
+                color: green;
+            }
+            .value {
+                min-width: 2em;
+            }
+            .state {
+                font-size: 3em;
+                font-weight: bold; 
+            }
+        </style>
+    </head>
+    <body>
+        <div class="state">
+            <div class="text">-</div>
+            <br>
+            Users connected: <div class="clients">-</div>
+        </div>
+        <script language="javascript" type="text/javascript">
+            var text = document.querySelector('.text')
+            var clients = document.querySelector('.clients')
+            
+            function wsOnMessage(event) {
+                data = JSON.parse(event.data);
+                text.textContent = data.text;
+                clients.textContent = data.count;
+            };
+
+            function send(show) {
+                data =  {
+                    'action': 'post',
+                    'text': document.myform.row1.value,
+                }
+                websocket.send(JSON.stringify(data));
+            }
+
+            function sendText() {
+                send(true)
+            }
+
+            function doEnd() {
+                document.myform.row1.value = ""
+                websocket.close()
+            }
+
+            function doConnect() {
+                websocket = new WebSocket("wss://" + document.myform.ip.value);
+                websocket.onopen = function(evt) { 
+                    showForm() 
+                };
+                websocket.onclose = function(evt) { 
+                    console.log("closed"); 
+                    hideForm() 
+                };
+                websocket.onmessage = function(evt) { wsOnMessage(evt) };
+                
+            }
+            function showForm() {
+                var x = document.getElementById("formi");
+                x.style.display = "block";
+            }
+            function hideForm() {
+                var x = document.getElementById("formi");
+                x.style.display = "none";
+            }
+
+        </script>
+        <form name="myform">
+            <p>
+            wss://<input name="ip" type="text" value="address to api wg"></input>            
+            <input type="button" name=connect value="Connect" onClick="doConnect();"></input>
+            </p>
+            <div id="formi" hidden >
+            <p>
+            Text: <input name="row1" type="text"></input>
+            </p>
+            <p>
+            <input type="button" name=showButton value="Send" onClick="sendText();"></input>
+            <input type="button" name=endButton value="Close" onClick="doEnd();"></input>
+            </p>
+            </div>
+        </form>
+    </body>
+</html>

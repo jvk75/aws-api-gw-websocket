@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>WebSocket test</title>
+        <style type="text/css">
+            body {
+                font-family: "Courier New", sans-serif;
+                text-align: center;
+            }
+            .buttons {
+                font-size: 4em;
+                display: flex;
+                justify-content: center;
+            }
+            .button, .value {
+                line-height: 1;
+                padding: 2rem;
+                margin: 2rem;
+                border: medium solid;
+                min-height: 1em;
+                min-width: 1em;
+            }
+            .button {
+                cursor: pointer;
+                user-select: none;
+            }
+            .minus {
+                color: red;
+            }
+            .plus {
+                color: green;
+            }
+            .value {
+                min-width: 2em;
+            }
+            .state {
+                font-size: 3em;
+                font-weight: bold; 
+            }
+        </style>
+    </head>
+    <body>
+        <div class="state">
+            <div class="text">-</div>
+            <br>
+            <div class="clients"></div>
+        </div>
+        <script language="javascript" type="text/javascript">
+            var text = document.querySelector('.text')
+            var clients = document.querySelector('.clients')
+            
+            function wsOnMessage(event) {
+                data = JSON.parse(event.data);
+                text.textContent = data.text;
+                clients.textContent = 'Users connected: ' + data.count;
+            };
+
+            function doConnect() {
+                websocket = new WebSocket("ADD HERE A PATH TO AWS GW");
+                websocket.onopen = function(evt) {
+                    console.log("connected"); 
+                };
+                websocket.onclose = function(evt) { 
+                    console.log("closed"); 
+                };
+                websocket.onmessage = function(evt) { wsOnMessage(evt) };
+            }
+
+            doConnect()
+        </script>
+    </body>
+</html>

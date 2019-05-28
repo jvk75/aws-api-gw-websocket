@@ -1,0 +1,16 @@
+Metadata:
+  StackName: "DEMO-dynamo"
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Dynamo DB config for DEMO"
+Resources:
+  DDBCONNECTIONS:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ddb-connections 
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: "Connections"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: "Connections"
+            KeyType: "HASH"
